@@ -6,7 +6,7 @@
 namespace fims {
     namespace common {
 
-                /**
+        /**
          * Structure to encapsulate nll relevant information.
          */
         template<typename Type>
@@ -23,6 +23,7 @@ namespace fims {
         struct LikelihoodFunctorBase {
             virtual const Type Evaluate(std::shared_ptr<LikelihoodInfo<Type> >& info) = 0;
             virtual void ComputeOSA(std::shared_ptr<LikelihoodInfo<Type> >& info) = 0;
+            virtual void ComputeMetrics(std::shared_ptr<LikelihoodInfo<Type> >& info) = 0;
         };
 
         /**
@@ -38,6 +39,10 @@ namespace fims {
             virtual void ComputeOSA(std::shared_ptr<LikelihoodInfo<Type> >& info) {
                 throw std::runtime_error("Not yet implemented.\n");
             }
+
+            virtual void ComputeMetrics(std::shared_ptr<LikelihoodInfo<Type> >& info) {
+                throw std::runtime_error("Not yet implemented.\n");
+            }
         };
 
         template<typename Type>
@@ -48,6 +53,10 @@ namespace fims {
             }
 
             virtual void ComputeOSA(std::shared_ptr<LikelihoodInfo<Type> >& info) {
+                throw std::runtime_error("Not yet implemented.\n");
+            }
+
+            virtual void ComputeMetrics(std::shared_ptr<LikelihoodInfo<Type> >& info) {
                 throw std::runtime_error("Not yet implemented.\n");
             }
         };
