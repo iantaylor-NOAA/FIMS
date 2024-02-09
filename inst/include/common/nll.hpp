@@ -66,6 +66,21 @@ namespace fims {
             std::shared_ptr<LikelihoodInfo<Type> > info;
             std::shared_ptr<LikelihoodFunctorBase<Type> > nll_functor;
 
+            bool record_residuals;
+            fims::Vector<REAL_T> residuals;
+
+            bool compute_osa;
+
+            //metrics
+            Type chi_square = 0.0;
+            Type g_test = 0.0;
+            Type rmse = 0.0;
+            Type rmsle = 0.0;
+            Type r_squared = 0.0;
+            Type AIC = 0.0; //Akaike’s Information Criterion.
+            Type BIC = 0.0; //Bayesian Information Criterion
+            uint32_t k; //number of parameters. Used for AIC and BIC calculation.
+
             const Type Evaluate() {
                 return this->nll_functor->Evaluate(this->info);
             }
