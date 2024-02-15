@@ -52,6 +52,9 @@ vector<Type> ADREPORTvector(vector<vector<Type> > x) {
 
 #define SIMULATE_F(F) if (isDouble<Type>::value && F->do_simulate)
 
+//used in one-step-ahead residual calculations
+ typedef data_indicator<tmbutils::vector<Type> , Type>  data_indicator;
+
 #endif /* TMB_MODEL */
 
 #endif /* FIMS_INTERFACE_HPP */
