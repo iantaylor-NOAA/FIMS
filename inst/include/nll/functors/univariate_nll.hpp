@@ -8,13 +8,13 @@ namespace fims {
     namespace nll {
 
         /**
-         * Normal Likelihood for Data.
+         * Normal Negative Log-Likelihood for Data.
          */
         template<typename Type>
         struct NormalDataNLL : public NLLFunctorBase {
             
     
-        virtual const Type evaluate(std::shared_ptr<NLLInfo<Type> >& info) {
+        virtual const Type evaluate(std::shared_ptr<NLLDataInfo<Type> >& info) {
             std::shared_ptr<DataObject<Type> > observed = info->data;
             for (size_t i = 0; i < this->observed.size(); i++) {
                 Type x = observed->at(i);
@@ -33,13 +33,13 @@ namespace fims {
         }
 
         /**
-         * Normal Likelihood for Parameter.
+         * Normal Negative Log-Likelihood for Latent Variable.
          */
         template<typename Type>
-        struct NormalParmNLL : public NLLFunctorBase {
+        struct NormalLVNLL : public NLLFunctorBase {
             
     
-        virtual const Type evaluate(std::shared_ptr<NLLInfo<Type> >& info) {
+        virtual const Type evaluate(std::shared_ptr<NLLLVInfo<Type> >& info) {
             //how to link in any parameter vector?
             for (size_t i = 0; i < this->observed.size(); i++) {
                 Type x = info->process[i];

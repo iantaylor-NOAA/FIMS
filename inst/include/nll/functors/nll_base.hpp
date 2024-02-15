@@ -8,11 +8,18 @@
 namespace fims {
     namespace nll {
 
-        /**
-         * Structure to encapsulate nll relevant information.
+         /**
+         * Structure to encapsulate nll relevant information for data.
          */
         template<typename Type>
-        struct UnivariateNLLInfo {
+        struct NLLInfoBase {
+        }
+
+        /**
+         * Structure to encapsulate nll relevant information for data.
+         */
+        template<typename Type>
+        struct UnivariateDataNLLInfo : public NLLInfoBase {
             //separate NLLInfo for RE/Priors?
             // - obs is parameter, not data
             // - do not multiply by keep vector to calculate osa resiudals
@@ -20,8 +27,31 @@ namespace fims {
             //  - these can be fixed via mapping
             //  - several people are using this approach
             std::shared_ptr<DataObject<Type> > data;
-            //defined in interface.hpp within #ifdef TMB; requires data is a vector
-            data_indicator(keep,data);
+            //should priors be internal or external to FIMS (or both?)
+            fims::Vector<Type> priors; // weights, keep, or priors
+            //how are expected values set?
+            fims::Vector<Type> expected;
+            fims::Vector<Type> parameters;
+             #ifdef TMB_MODEL
+                //defined in interface.hpp within #ifdef TMB; requires data is a vector
+                data_indicator(keep,data);
+                ::objective_function<Type>
+                *of;  // :: references global namespace, defined in src/FIMS.cpp,
+            #elseif
+                fims::Vector<Type> keep;
+                keep.fill(1.0);
+            #endif
+
+            static uint32_t id_g; /**< The ID of the instance of the Univariate */
+        };
+
+        /**
+         * Structure to encapsulate nll relevant information for latent variables.
+         */
+
+        template<typename Type>
+        struct UnivariateLVNLLInfo  : public NLLInfoBase {
+            fims::Vector<Type> observed;
             //should priors be internal or external to FIMS (or both?)
             fims::Vector<Type> priors; // weights, keep, or priors
             //how are expected values set?
@@ -31,6 +61,8 @@ namespace fims {
                 ::objective_function<Type>
                 *of;  // :: references global namespace, defined in src/FIMS.cpp,
             #endif
+
+            static uint32_t id_g; /**< The ID of the instance of the Univariate */
         };
       
 
@@ -39,16 +71,16 @@ namespace fims {
          */
         template<typename Type>
         struct NLLFunctorBase {
-            virtual const Type evaluate(std::shared_ptr<NLLInfo<Type> >& info) = 0;
+            virtual const Type evaluate(std::shared_ptr<NLLInfoBase<Type> >& info) = 0;
             //osa is calculated simultaneous to nll, so can't be calculated separately
             //virtual void compute_OSA(std::shared_ptr<LikelihoodInfo<Type> >& info) = 0;
-            virtual void compute_metrics(std::shared_ptr<NLLInfo<Type> >& info) = 0;
+            virtual void compute_metrics(std::shared_ptr<NLLInfoBase<Type> >& info) = 0;
         }
 
 
         template<typename Type>
         struct NLLComponent {
-            std::shared_ptr<NLLInfo<Type> > info;
+            std::shared_ptr<NLLInfoBase<Type> > info;
             std::shared_ptr<NLLFunctorBase<Type> > nll_functor;
 
             //these are calculated using the TMB::oneStepPredict(obj) function and run after optimization 
