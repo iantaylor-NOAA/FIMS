@@ -120,8 +120,7 @@ public:
      * @return Rcpp::List
      */
     Rcpp::List GetDerivedQuantities() {
-        //        Rcpp::List results;
-
+        
         std::shared_ptr<fims_info::Information<double> > info =
                 fims_info::Information<double>::GetInstance();
 
@@ -139,9 +138,7 @@ public:
      * @return Rcpp::List
      */
     Rcpp::List Forecast(int fyears) {
-
-        //        Rcpp::List results;
-
+        
         std::shared_ptr<fims_info::Information<double> > info =
                 fims_info::Information<double>::GetInstance();
 
