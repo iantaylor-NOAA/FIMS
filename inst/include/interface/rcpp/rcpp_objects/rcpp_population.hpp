@@ -152,8 +152,6 @@ public:
         p.ages = population->ages;
         p.nages = population->nages;
         p.id = population->id;
-        //        p.nfleets = 
-        //        p.fleets.resize(population->nfleets);
         p.nseasons = population->nseasons;
         p.growth = population->growth;
         p.recruitment = population->recruitment;
