@@ -165,11 +165,9 @@ public:
             fleet->log_obs_error = population->fleets[i]->log_obs_error;
             std::fill(fleet->Fmort.begin(), fleet->Fmort.end(), population->fleets[i]->Fmort[population->fleets[i]->Fmort.size() - 1]);
             std::fill(fleet->log_Fmort.begin(), fleet->log_Fmort.end(), population->fleets[i]->log_Fmort[population->fleets[i]->log_Fmort.size() - 1]);
-            //            fleet->log_Fmort = population->fleets[i]->log_Fmort;
             fleet->log_q = population->fleets[i]->log_q;
             fleet->is_survey = population->fleets[i]->is_survey;
             fleet->id = population->fleets[i]->id;
-            //            fleet->Prepare();
             p.fleets.push_back(fleet);
         }
 
