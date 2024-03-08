@@ -3,6 +3,7 @@
 export("%>%")
 export(AgeComp)
 export(BevertonHoltRecruitment)
+export(RecruitmentRCallback)
 export(CreateTMBModel)
 export(DoubleLogisticSelectivity)
 export(EWAAgrowth)

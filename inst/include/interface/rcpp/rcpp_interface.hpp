@@ -358,6 +358,14 @@ RCPP_MODULE(fims) {
              &BevertonHoltRecruitmentInterface::log_sigma_recruit)
       .method("evaluate", &BevertonHoltRecruitmentInterface::evaluate)
       .method("evaluate_nll", &BevertonHoltRecruitmentInterface::evaluate_nll);
+  
+    Rcpp::class_<RecruitmentRCallbackInterface>("RecruitmentRCallback")
+      .constructor()
+      .method("SetFunction", &RecruitmentRCallbackInterface::SetFunction)
+      .method("AddArgument", &RecruitmentRCallbackInterface::AddArgument)
+    .method("evaluate", &RecruitmentRCallbackInterface::evaluate);
+  
+  
 
   Rcpp::class_<FleetInterface>("Fleet")
       .constructor()

@@ -24,53 +24,65 @@
  * the interface between R and C++ for parameter types.
  */
 class Parameter {
- public:
-  double value_m; /**< initial value of the parameter*/
-  double min_m =
-      std::numeric_limits<double>::min(); /**< min value of the parameter*/
-  double max_m =
-      std::numeric_limits<double>::max(); /**< max value of the parameter*/
-  bool is_random_effect_m = false;        /**< Is the parameter a random effect
+public:
+    double value_m = 0; /**< initial value of the parameter*/
+    double min_m =
+            std::numeric_limits<double>::min(); /**< min value of the parameter*/
+    double max_m =
+            std::numeric_limits<double>::max(); /**< max value of the parameter*/
+    bool is_random_effect_m = false; /**< Is the parameter a random effect
                                            parameter? Default value is false.*/
-  bool estimated_m =
-      false; /**< Is the parameter estimated? Default value is false.*/
+    bool estimated_m =
+            false; /**< Is the parameter estimated? Default value is false.*/
 
-  /**
-   * @brief Constructor for initializing Parameter.
-   * @details Inputs include value, min, max, estimated.
-   */
-  Parameter(double value, double min, double max, bool estimated)
-      : value_m(value), min_m(min), max_m(max), estimated_m(estimated) {}
+    /**
+     * @brief Constructor for initializing Parameter.
+     * @details Inputs include value, min, max, estimated.
+     */
+    Parameter(double value, double min, double max, bool estimated)
+    : value_m(value), min_m(min), max_m(max), estimated_m(estimated) {
+    }
 
-  /**
-   * @brief Constructor for initializing Parameter.
-   * @details Inputs include value.
-   */
-  Parameter(double value) { value_m = value; }
+    /**
+     * @brief Constructor for initializing Parameter.
+     * @details Inputs include value.
+     */
+    Parameter(double value) {
+        value_m = value;
+    }
 
-  /**
-   * @brief Constructor for initializing Parameter.
-   * @details Set value to 0 when there is no input value.
-   */
-  Parameter() { value_m = 0; }
+    /**
+     * @brief Constructor for initializing Parameter.
+     * @details Set value to 0 when there is no input value.
+     */
+    Parameter() {
+        value_m = 0;
+    }
+    
+    
+    
+    Parameter(const Parameter& other) :
+    value_m(other.value_m), min_m(other.min_m), max_m(other.max_m), is_random_effect_m(other.is_random_effect_m), estimated_m(other.estimated_m) {
+    }
+
 };
 
 /**
  *@brief Base class for all interface objects
  */
 class FIMSRcppInterfaceBase {
- public:
-  /**< FIMS interface object vectors */
-  static std::vector<FIMSRcppInterfaceBase *> fims_interface_objects;
+public:
+    /**< FIMS interface object vectors */
+    static std::vector<FIMSRcppInterfaceBase *> fims_interface_objects;
 
-  /** @brief virtual method to inherit to add objects to the TMB model */
-  virtual bool add_to_fims_tmb() {
-    std::cout << "fims_rcpp_interface_base::add_to_fims_tmb(): Not yet "
-                 "implemented.\n";
-    return false;
-  }
+    /** @brief virtual method to inherit to add objects to the TMB model */
+    virtual bool add_to_fims_tmb() {
+        std::cout << "fims_rcpp_interface_base::add_to_fims_tmb(): Not yet "
+                "implemented.\n";
+        return false;
+    }
 };
 std::vector<FIMSRcppInterfaceBase *>
-    FIMSRcppInterfaceBase::fims_interface_objects;
+FIMSRcppInterfaceBase::fims_interface_objects;
 
 #endif
