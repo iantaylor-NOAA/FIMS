@@ -213,42 +213,17 @@ public:
 
     double evaluate(double spawners, double ssbzero) {
         Rcpp::List l;
+        //add spawners and sbzero to argument list
         arguments["spawners"].value_m = spawners;
         arguments["ssbzero"].value_m = ssbzero;
 
 
+        //get base R environment and function do.call
         Rcpp::Environment baseEnv("package:base");
         Rcpp::Function DoCallFunc = baseEnv["do.call"];
 
 
-        SEXP temp1;
-        PROTECT(temp1 = Rf_lang2(Rf_install("args"), static_cast<SEXP> (*f)));
-
-        int error = 0;
-        SEXP temp2 = R_tryEval(temp1, R_GlobalEnv, &error);
-
-        if (error) {
-            Rcpp::Rcout << "Error calling args." << std::endl;
-        }
-
-        error = 0;
-        SEXP temp3;
-        PROTECT(temp3 = Rf_lang2(Rf_install("as.list"), temp2));
-
-
-        SEXP temp4 = R_tryEval(temp3, R_GlobalEnv, &error);
-
-        if (error) {
-            Rcpp::Rcout << "Error calling as.list." << std::endl;
-        }
-
-        UNPROTECT(2);
-
-        Rcpp::List L = Rcpp::as<Rcpp::List>(temp4);
-        Rcpp::Rcout << "list size = " << L.size() << "\n";
-
-
-        //check and fill arguments
+        //check and fill arguments for R call
         arguments_iterator it;
         std::vector<std::string> names = this->get_argument_names();
         
@@ -270,6 +245,7 @@ public:
 
         }
 
+        //apply do.call
         SEXP ret = DoCallFunc((*f), l);
 
         return Rcpp::as<double>(ret);
