@@ -250,10 +250,12 @@ public:
 
         //check and fill arguments
         arguments_iterator it;
-        Rcpp::CharacterVector names = L.names();
+        std::vector<std::string> names = this->get_argument_names();
+        
         for (int j = 0; j < names.size(); ++j) {
 
-            std::string str = Rcpp::as<std::string>(names[j]);
+            std::string str = names[j];
+            
             if (!str.empty()) {
                 std::cout << str << std::endl;
                 it = arguments.find(str);
@@ -279,6 +281,48 @@ public:
 
     double evaluate_nll() {
         return 0;
+    }
+
+    std::vector<std::string> get_argument_names() {
+        std::vector<std::string> ret;
+        
+        SEXP temp1;
+        PROTECT(temp1 = Rf_lang2(Rf_install("args"), static_cast<SEXP> (*f)));
+
+        int error = 0;
+        SEXP temp2 = R_tryEval(temp1, R_GlobalEnv, &error);
+
+        if (error) {
+            Rcpp::Rcout << "Error calling args." << std::endl;
+        }
+
+        error = 0;
+        SEXP temp3;
+        PROTECT(temp3 = Rf_lang2(Rf_install("as.list"), temp2));
+
+
+        SEXP temp4 = R_tryEval(temp3, R_GlobalEnv, &error);
+
+        if (error) {
+            Rcpp::Rcout << "Error calling as.list." << std::endl;
+        }
+
+        UNPROTECT(2);
+
+        Rcpp::List L = Rcpp::as<Rcpp::List>(temp4);
+
+        Rcpp::CharacterVector names = L.names();
+        for (int j = 0; j < names.size(); ++j) {
+
+            std::string str = Rcpp::as<std::string>(names[j]);
+            if (!str.empty()) {
+                ret.push_back(str);
+            }
+
+        }
+
+        return ret;
+
     }
 
 #ifdef TMB_MODEL
