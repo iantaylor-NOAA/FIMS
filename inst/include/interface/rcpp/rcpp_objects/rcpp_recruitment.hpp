@@ -188,6 +188,7 @@ public:
 
 class RecruitmentRCallbackInterface : public RecruitmentInterfaceBase {
     std::shared_ptr<Rcpp::Function> f;
+    SEXP f_SEXP;
     std::map<std::string, Parameter> arguments;
     typedef typename std::map<std::string, Parameter>::iterator arguments_iterator;
 
@@ -214,17 +215,60 @@ public:
         Rcpp::List l;
         arguments["spawners"].value_m = spawners;
         arguments["ssbzero"].value_m = ssbzero;
-        
-        arguments_iterator it;
-        for (it = arguments.begin(); it != arguments.end(); ++it) {
-            l[it->first] = it->second.value_m;
-            std::cout << it->first << " .  " << it->second.value_m << std::endl;
-        }
 
 
         Rcpp::Environment baseEnv("package:base");
         Rcpp::Function DoCallFunc = baseEnv["do.call"];
-        SEXP ret = DoCallFunc((*f),l);
+
+
+        SEXP temp1;
+        PROTECT(temp1 = Rf_lang2(Rf_install("args"), static_cast<SEXP> (*f)));
+
+        int error = 0;
+        SEXP temp2 = R_tryEval(temp1, R_GlobalEnv, &error);
+
+        if (error) {
+            Rcpp::Rcout << "Error calling args." << std::endl;
+        }
+
+        error = 0;
+        SEXP temp3;
+        PROTECT(temp3 = Rf_lang2(Rf_install("as.list"), temp2));
+
+
+        SEXP temp4 = R_tryEval(temp3, R_GlobalEnv, &error);
+
+        if (error) {
+            Rcpp::Rcout << "Error calling as.list." << std::endl;
+        }
+
+        UNPROTECT(2);
+
+        Rcpp::List L = Rcpp::as<Rcpp::List>(temp4);
+        Rcpp::Rcout << "list size = " << L.size() << "\n";
+
+
+        //check and fill arguments
+        arguments_iterator it;
+        Rcpp::CharacterVector names = L.names();
+        for (int j = 0; j < names.size(); ++j) {
+
+            std::string str = Rcpp::as<std::string>(names[j]);
+            if (!str.empty()) {
+                std::cout << str << std::endl;
+                it = arguments.find(str);
+                if (it != arguments.end()) {
+                    l[it->first] = it->second.value_m;
+                } else {
+                    Rcpp::Rcout << "Error in R function call. Invalid argument list. \"" << str << "\" not found!" << std::endl;
+                    return 0;
+                }
+
+            }
+
+        }
+
+        SEXP ret = DoCallFunc((*f), l);
 
         return Rcpp::as<double>(ret);
     }
