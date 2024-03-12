@@ -73,8 +73,8 @@ public:
     enum ForecastType {
         CURRENT = 0,
         MEAN,
-        UPPER,
-        LOWER
+        UPPER, //95 percent upper confidence bound
+        LOWER  //95 percent lower confidence bound
     };
 
     PopulationInterface() : PopulationInterfaceBase() {
