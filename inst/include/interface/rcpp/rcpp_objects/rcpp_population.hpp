@@ -70,6 +70,13 @@ public:
     bool estimate_initNAA; /**<whether parameter should be estimated*/
     bool estimate_prop_female; /**<whether proportion female should be estimated*/
 
+    enum ForecastType {
+        CURRENT = 0,
+        MEAN,
+        UPPER,
+        LOWER
+    };
+
     PopulationInterface() : PopulationInterfaceBase() {
     }
 
@@ -113,65 +120,153 @@ public:
         return population.Evaluate();
     }
 
-    /**
-     * @brief Extracts a list of derived quantities from the population with this id
-     * from the information object.
-     * 
-     * @return Rcpp::List
-     */
     Rcpp::List GetDerivedQuantities() {
-        
+        Rcpp::List results;
+
         std::shared_ptr<fims_info::Information<double> > info =
                 fims_info::Information<double>::GetInstance();
 
         std::shared_ptr<fims_popdy::Population<double> > population =
                 info->populations[this->id];
 
-        return this->GetDerivedQuantitiesInternal(*population);
+        Rcpp::NumericVector biomass(population->biomass.size());
+        Rcpp::NumericVector spawning_biomass(population->spawning_biomass.size());
+        Rcpp::NumericVector recruitment(population->expected_recruitment.size());
+        for (size_t i = 0; i < biomass.size(); i++) {
+            biomass[i] = population->biomass[i];
+            spawning_biomass[i] = population->spawning_biomass[i];
+            recruitment[i] = population->expected_recruitment[i];
+        }
+
+
+        //collapse catch into a single vector for all fleets
+        Rcpp::NumericVector total_catch(population->nyears);
+
+        for (size_t i = 0; i < population->nyears; i++) {
+            double sum = 0;
+            for (size_t j = 0; j < population->nfleets; j++) {
+                size_t index = (i * population->nfleets) + j;
+                sum += population->expected_catch[index];
+            }
+            total_catch[i] = sum;
+        }
+        Rcpp::NumericMatrix naa(population->nyears, population->nages);
+        Rcpp::NumericMatrix F(population->nyears, population->nages);
+        Rcpp::NumericMatrix Z(population->nyears, population->nages);
+        for (size_t i = 0; i < population->nyears; i++) {
+            for (size_t j = 0; j < population->nages; j++) {
+                size_t index = (i * population->nages) + j;
+                naa(i, j) = population->numbers_at_age[index];
+                F(i, j) = population->mortality_F[index];
+                Z(i, j) = population->mortality_Z[index];
+            }
+        }
+
+
+
+        results = Rcpp::List::create(
+                Rcpp::Named("id") = this->id,
+                Rcpp::Named("info_type") = "derived_quantities",
+                Rcpp::Named("biomass") = biomass,
+                Rcpp::Named("spawning_biomass") = spawning_biomass,
+                Rcpp::Named("recruitment") = recruitment,
+                Rcpp::Named("numbers_at_age") = naa,
+                Rcpp::Named("total_catch") = total_catch,
+                Rcpp::Named("Z") = Z,
+                Rcpp::Named("F") = F);
+
+        return results;
     }
 
-    /**
-     * @brief Forecast to "fyears" given current model parametrization. 
-     * Extracts a list of derived quantities from the population with this id
-     * from the information object.
-     * 
-     * @return Rcpp::List
+    /*
+     * Returns the forecast values of derived quantities given the 
+     * current (last year of model fit), mean, 95 percent upper confidence 
+     * bound, 95 percent upper confidence bound of fishing mortality.
      */
-    Rcpp::List Forecast(int fyears) {
-        
+    Rcpp::List Forecast(int pyears) {
+        Rcpp::List results;
         std::shared_ptr<fims_info::Information<double> > info =
                 fims_info::Information<double>::GetInstance();
 
         std::shared_ptr<fims_popdy::Population<double> > population =
                 info->populations[this->id];
+
+        results = Rcpp::List::create(
+                Rcpp::Named("current") = this->forecast_internal(pyears, CURRENT),
+                Rcpp::Named("mean") = this->forecast_internal(pyears, MEAN),
+                Rcpp::Named("upper") = this->forecast_internal(pyears, UPPER),
+                Rcpp::Named("lower") = this->forecast_internal(pyears, LOWER));
+
+        return results;
+
+    }
+
+    Rcpp::List forecast_internal(int pyears, ForecastType t) {
+
+        Rcpp::List results;
+
+        std::shared_ptr<fims_info::Information<double> > info =
+                fims_info::Information<double>::GetInstance();
+
+        std::shared_ptr<fims_popdy::Population<double> > population =
+                info->populations[this->id];
+
+
 
 
 
         fims_popdy::Population<double> p;
-        p.nyears = fyears;
+
+
+        ///current fishing mortality
+        p.nyears = pyears;
         p.ages = population->ages;
         p.nages = population->nages;
         p.id = population->id;
+        //        p.nfleets = 
+        //        p.fleets.resize(population->nfleets);
         p.nseasons = population->nseasons;
         p.growth = population->growth;
         p.recruitment = population->recruitment;
         p.maturity = population->maturity;
 
 
+
         for (int i = 0; i < population->fleets.size(); i++) {
             std::shared_ptr<fims_popdy::Fleet<double> > fleet = std::make_shared<fims_popdy::Fleet<double> >();
-            fleet->Initialize(fyears, p.nages);
+            fleet->Initialize(pyears, p.nages);
             fleet->selectivity = population->fleets[i]->selectivity;
             fleet->log_obs_error = population->fleets[i]->log_obs_error;
-            std::fill(fleet->Fmort.begin(), fleet->Fmort.end(), population->fleets[i]->Fmort[population->fleets[i]->Fmort.size() - 1]);
-            std::fill(fleet->log_Fmort.begin(), fleet->log_Fmort.end(), population->fleets[i]->log_Fmort[population->fleets[i]->log_Fmort.size() - 1]);
+
+            std::pair<double, double> meanStdev1 = this->mean_and_stdev(population->fleets[i]->Fmort);
+            std::pair<double, double> meanStdev2 = this->mean_and_stdev(population->fleets[i]->log_Fmort);
+
+            Rcpp::Rcout << meanStdev1.first << " --- " << meanStdev1.second << std::endl;
+
+            if (t == CURRENT) {
+                std::fill(fleet->Fmort.begin(), fleet->Fmort.end(), population->fleets[i]->Fmort[population->fleets[i]->Fmort.size() - 1]);
+                std::fill(fleet->log_Fmort.begin(), fleet->log_Fmort.end(), population->fleets[i]->log_Fmort[population->fleets[i]->log_Fmort.size() - 1]);
+            } else if (t == MEAN) {
+                std::fill(fleet->Fmort.begin(), fleet->Fmort.end(), meanStdev1.first);
+                std::fill(fleet->log_Fmort.begin(), fleet->log_Fmort.end(), meanStdev2.first);
+            } else if (t == UPPER) {
+                std::fill(fleet->Fmort.begin(), fleet->Fmort.end(), meanStdev1.first + 2 * meanStdev1.second);
+                std::fill(fleet->log_Fmort.begin(), fleet->log_Fmort.end(), meanStdev2.first + 2 * meanStdev2.second);
+            } else if (t == LOWER) {
+                std::fill(fleet->Fmort.begin(), fleet->Fmort.end(), meanStdev1.first - 2 * meanStdev1.second);
+                std::fill(fleet->log_Fmort.begin(), fleet->log_Fmort.end(), meanStdev2.first - 2 * meanStdev2.second);
+            }
+
+
+            //            fleet->log_Fmort = population->fleets[i]->log_Fmort;
             fleet->log_q = population->fleets[i]->log_q;
             fleet->is_survey = population->fleets[i]->is_survey;
             fleet->id = population->fleets[i]->id;
+            //            fleet->Prepare();
             p.fleets.push_back(fleet);
         }
 
-        p.Initialize(fyears, population->nseasons, population->nages);
+        p.Initialize(pyears, population->nseasons, population->nages);
 
         for (int a = 0; a < p.nages; a++) {
             size_t j = (population->nyears - 2) * population->nages + a;
@@ -183,8 +278,74 @@ public:
         p.Prepare();
         p.Evaluate();
 
-        return this->GetDerivedQuantitiesInternal(p);
+        Rcpp::NumericVector biomass(p.biomass.size());
+        Rcpp::NumericVector spawning_biomass(p.spawning_biomass.size());
+        Rcpp::NumericVector recruitment(p.expected_recruitment.size());
+        for (size_t i = 0; i < biomass.size(); i++) {
+            biomass[i] = p.biomass[i];
+            spawning_biomass[i] = p.spawning_biomass[i];
+            recruitment[i] = p.expected_recruitment[i];
+        }
 
+        //collapse catch into a single vector for all fleets
+        Rcpp::NumericVector total_catch(p.nyears);
+
+        for (size_t i = 0; i < p.nyears; i++) {
+            double sum = 0;
+            for (size_t j = 0; j < p.nfleets; j++) {
+                size_t index = (i * p.nfleets) + j;
+                sum += p.expected_catch[index];
+            }
+            total_catch[i] = sum;
+        }
+
+        Rcpp::NumericMatrix naa(p.nyears, p.nages);
+        Rcpp::NumericMatrix F(p.nyears, p.nages);
+        Rcpp::NumericMatrix Z(p.nyears, p.nages);
+        for (size_t i = 0; i < p.nyears; i++) {
+            for (size_t j = 0; j < p.nages; j++) {
+                size_t index = (i * p.nages) + j;
+                naa(i, j) = p.numbers_at_age[index];
+                F(i, j) = p.mortality_F[index];
+                Z(i, j) = p.mortality_Z[index];
+            }
+        }
+
+
+
+        results = Rcpp::List::create(
+                Rcpp::Named("id") = this->id,
+                Rcpp::Named("info_type") = "forecast_quantities",
+                Rcpp::Named("biomass") = biomass,
+                Rcpp::Named("spawning_biomass") = spawning_biomass,
+                Rcpp::Named("recruitment") = recruitment,
+                Rcpp::Named("numbers_at_age") = naa,
+                Rcpp::Named("total_catch") = total_catch,
+                Rcpp::Named("Z") = Z,
+                Rcpp::Named("F") = F);
+
+        return results;
+
+    }
+
+    std::pair<double, double> mean_and_stdev(fims::Vector<double>& a) {
+        size_t n = a.size();
+        std::pair<double, double> ret;
+        if (n == 0) {
+            return ret;
+        }
+
+        double sum = 0;
+        double sq_sum = 0;
+        for (int i = 0; i < n; ++i) {
+            sum += a[i];
+            sq_sum += a[i] * a[i];
+        }
+        double mean = sum / n;
+        double variance = sq_sum / n - mean * mean;
+        ret.first = mean;
+        ret.second = std::sqrt(variance);
+        return ret;
     }
 
 #ifdef TMB_MODEL
@@ -255,60 +416,6 @@ public:
     }
 
 #endif
-
-private:
-
-    Rcpp::List GetDerivedQuantitiesInternal(const fims_popdy::Population<double>& p) {
-        Rcpp::List results;
-
-        Rcpp::NumericVector biomass(p.biomass.size());
-        Rcpp::NumericVector spawning_biomass(p.spawning_biomass.size());
-        Rcpp::NumericVector recruitment(p.expected_recruitment.size());
-        for (size_t i = 0; i < biomass.size(); i++) {
-            biomass[i] = p.biomass[i];
-            spawning_biomass[i] = p.spawning_biomass[i];
-            recruitment[i] = p.expected_recruitment[i];
-        }
-
-        //collapse catch into a single vector for all fleets
-        Rcpp::NumericVector total_catch(p.nyears);
-
-        for (size_t i = 0; i < p.nyears; i++) {
-            double sum = 0;
-            for (size_t j = 0; j < p.nfleets; j++) {
-                size_t index = (i * p.nfleets) + j;
-                sum += p.expected_catch[index];
-            }
-            total_catch[i] = sum;
-        }
-
-        Rcpp::NumericMatrix naa(p.nyears, p.nages);
-        Rcpp::NumericMatrix F(p.nyears, p.nages);
-        Rcpp::NumericMatrix Z(p.nyears, p.nages);
-        for (size_t i = 0; i < p.nyears; i++) {
-            for (size_t j = 0; j < p.nages; j++) {
-                size_t index = (i * p.nages) + j;
-                naa(i, j) = p.numbers_at_age[index];
-                F(i, j) = p.mortality_F[index];
-                Z(i, j) = p.mortality_Z[index];
-            }
-        }
-
-
-
-        results["population_id"] = this->id;
-        results["info_type"] = "forecast_quantities";
-        results["biomass"] = biomass;
-        results["spawning_biomass"] = spawning_biomass;
-        results["recruitment"] = recruitment;
-        results["numbers_at_age"] = naa;
-        results["total_catch"] = total_catch;
-        results["Z"] = Z;
-        results["F"] = F;
-
-        return results;
-    }
-
 };
 
 #endif
