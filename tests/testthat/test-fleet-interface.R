@@ -54,3 +54,13 @@ test_that("Fleet: SetObservedIndexData works", {
 
   clear()
 })
+
+test_that("Fleet: dimension checking works",{
+  fleet <- new(Fleet)
+  fleet$nyears <- 10
+  fleet$nages <- 5
+
+  expect_error(fleet$log_obs_error <- rep(0,9))
+
+  clear()
+})

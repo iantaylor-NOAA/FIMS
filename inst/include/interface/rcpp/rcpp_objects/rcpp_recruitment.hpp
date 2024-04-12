@@ -103,6 +103,7 @@ class BevertonHoltRecruitmentInterface : public RecruitmentInterfaceBase {
 
     NLL.log_sigma_recruit = this->log_sigma_recruit.value_m;
     NLL.log_recruit_devs.resize(log_devs.size());  // Vector from TMB
+    
     for (int i = 0; i < log_devs.size(); i++) {
       NLL.log_recruit_devs[i] = log_devs[i];
     }
@@ -148,7 +149,9 @@ class BevertonHoltRecruitmentInterface : public RecruitmentInterfaceBase {
         info->RegisterParameter(recruitment->log_sigma_recruit);
       }
     }
-
+    if(log_devs.size()!=info->nyears){
+      throw Rcpp::exception("Error: log_devs is not of size nyears");
+    }
     recruitment->log_recruit_devs.resize(this->log_devs.size());
     if (this->estimate_log_devs) {
       for (size_t i = 0; i < recruitment->log_recruit_devs.size(); i++) {

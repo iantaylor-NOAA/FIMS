@@ -152,6 +152,9 @@ class FleetInterface : public FleetInterfaceBase {
     fleet->fleet_observed_index_data_id_m = interface_observed_index_data_id_m;
     fleet->fleet_selectivity_id_m = interface_selectivity_id_m;
 
+    if(log_obs_error.size()!=this->nyears){
+      throw Rcpp::exception("Error: log_obs_error is not of size nyears");
+    }
     fleet->log_obs_error.resize(this->log_obs_error.size());
     for (int i = 0; i < log_obs_error.size(); i++) {
       fleet->log_obs_error[i] = this->log_obs_error[i];
@@ -161,6 +164,9 @@ class FleetInterface : public FleetInterfaceBase {
     }
 
     fleet->log_q = this->log_q;
+    if(sizeof(log_q)!=1){
+      throw Rcpp::exception("Error: log_q is not size 1");
+    }
     if (this->estimate_q) {
       if (this->random_q) {
         info->RegisterRandomEffect(fleet->log_q);
@@ -169,6 +175,9 @@ class FleetInterface : public FleetInterfaceBase {
       }
     }
 
+    if(log_Fmort.size()!=this->nyears){
+      throw Rcpp::exception("Error: log_Fmort is not of size nyears");
+    }
     fleet->log_Fmort.resize(this->log_Fmort.size());
     for (int i = 0; i < log_Fmort.size(); i++) {
       fleet->log_Fmort[i] = this->log_Fmort[i];

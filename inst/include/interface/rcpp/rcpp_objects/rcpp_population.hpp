@@ -123,12 +123,18 @@ class PopulationInterface : public PopulationInterfaceBase {
     if (this->nages == this->ages.size()) {
       population->ages.resize(this->nages);
     } else {
-      warning("The ages vector is not of size nages.");
+      throw Rcpp::exception("The ages vector is not of size nages.");
     }
 
     population->growth_id = this->growth_id;
     population->recruitment_id = this->recruitment_id;
     population->maturity_id = this->maturity_id;
+    if(log_M.size()!=(this->nyears*this->nages)){
+      throw Rcpp::exception("Error: log_M is not of size nyears*nages");
+    }
+    if(log_init_naa.size()!=this->nages){
+      throw Rcpp::exception("Error: log_init_naa is not of size nages");
+    }
     population->log_M.resize(this->log_M.size());
     population->log_init_naa.resize(this->log_init_naa.size());
     for (int i = 0; i < log_M.size(); i++) {
@@ -144,8 +150,15 @@ class PopulationInterface : public PopulationInterfaceBase {
         info->RegisterParameter(population->log_init_naa[i]);
       }
     }
+    if(ages.size()!=this->nages){
+      throw Rcpp::exception("Error: ages is not of size nages");
+    }
     for (int i = 0; i < ages.size(); i++) {
       population->ages[i] = this->ages[i];
+    }
+
+    if(proportion_female.size()!=this->nages){
+      throw Rcpp::exception("Error: proportion_female is not of size nages");
     }
     for (int i = 0; i < proportion_female.size(); i++) {
       population->proportion_female[i] = this->proportion_female[i];
