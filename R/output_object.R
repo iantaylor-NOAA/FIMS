@@ -1,12 +1,3 @@
-#' Create FIMS Output Object
-#'
-#' @return The FIMS output S4 object of class FIMSOutput.
-#' @examples
-#' create_fims_output()
-create_fims_output <- function() {
-
-}
-
 # This file defines a parent class and its children by
 # (1) setting the class;
 # (2) defining methods, using setMethod();
@@ -31,3 +22,47 @@ setClass(
     version = "list"
   )
 )
+
+# Constructors ----
+# All constructors in this file are documented in 1 roxygen file via @rdname.
+
+#' Class constructors for `FIMSOutput` and associated child classes
+#'
+#' All constructor functions take a single input and build an object specific to
+#' the needs of each model type within \pkg{FIMS}. `FIMSOutput` is the
+#' parent class and the associated child classes have additional slots needed
+#' for each model type.
+#' @export
+#' @rdname FIMSOutput
+#' @param data A `data.frame` that contains the necessary columns
+#'   to construct a output of FIMS of a given `FIMSOutput-class`.
+#' @return An object of the S4 class `FIMSOutput` or one of its child classes
+#' is validated and then returned. All objects will at a minimum have a slot
+#' called `data` to store the input data frame. Additional slots are dependent
+#' on the child class. Use [showClass()] to see all available slots.
+create_fims_output <- function(tmb,sdreport,call) {
+  # will pull the information from tmb and/or sdreport for estimates, par is a placeholder
+  estimates = tmb$par
+  estimates = sdreport$par
+  # will pull the information from tmb and/or sdreport for fits, par is a placeholder
+  fits = tmb$par
+  fits = sdreport$par
+  # Need to run the following timestamp code before running FIMS and after.
+  timestamp <- as.POSIXlt(Sys.time(), tz = "UTC") 
+  # The following code does not work now but it is the correct comment for getting packageVersion
+  version <- packageVersion("FIMS")
+  # match.call has to be used to create the call when the user run FIMS 
+  # call <- match.call()
+  
+  # Fill the empty data frames with data extracted from the data file
+  out <- new("FIMSOutput",
+             estimates = estimates,
+             fits = fits,
+             tmb = tmb,
+             sdreport = sdreport,
+             call = call,
+             timestamp = timestamp,
+             version = version
+  )
+  return(out)
+}
