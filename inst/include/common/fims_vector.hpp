@@ -4,7 +4,7 @@
 #include "../interface/interface.hpp"
 
 #define FIMS_VECTOR_IMLICIT_THROW
-
+#define FIMS_FULL_VECTOR_OPERATORS
 
 namespace fims {
 
@@ -54,6 +54,7 @@ namespace fims {
         typedef typename std::vector<Type>::const_reverse_iterator
         const_reverse_iterator; /*!<Constant reverse iterator>*/
 
+#ifdef FIMS_FULL_VECTOR_OPERATORS
 
         //friend operators
         template<typename T>
@@ -71,8 +72,8 @@ namespace fims {
         template<typename T>
         friend Vector<T> operator*(const T& a, const Vector<T>& v);
         template<typename T>
-        friend Vector<T> operator/(const Vector<T>& v, const T& a);
-    
+        friend Vector<T> operator/(const Vector<T>& v, const T& a); 
+#endif
         // Constructors
 
         /**
@@ -126,15 +127,6 @@ namespace fims {
 
 #endif
 
-        operator Type() {
-#ifdef FIMS_VECTOR_IMLICIT_THROW
-            if (this->vec_m.size() > 1) {
-                throw std::range_error("implicit conversion from fims::Vector to type \"Type\", fims::Vector has size > 1.");
-            }
-#endif
-
-            return this->vec_m[0];
-        }
 
         /**
          * The following are std::vector functions copied over from the standard
@@ -424,6 +416,16 @@ namespace fims {
             return this->vec_m;
         }
 
+
+        operator Type() {
+#ifdef FIMS_VECTOR_IMLICIT_THROW
+            if (this->vec_m.size() > 1) {
+                throw std::range_error("Implicit conversion from fims::Vector to type \"Type\", fims::Vector has size > 1. No scalar representation");
+            }
+#endif
+            return this->vec_m[0];
+        }
+
 #ifdef TMB_MODEL
 
         /**
@@ -479,7 +481,7 @@ namespace fims {
             }
             return *this;
         }
-
+#ifdef FIMS_FULL_VECTOR_OPERATORS
         Vector<Type>& operator+=(const Vector<Type>& v) {
 
             if (this->vec_m.size() < v.size()) {
@@ -559,7 +561,7 @@ namespace fims {
             }
             return *this;
         }
-
+#endif
 
     private:
     }; // end fims::Vector class
@@ -575,7 +577,7 @@ namespace fims {
 
 
 
-
+#ifdef FIMS_FULL_VECTOR_OPERATORS
     //binary operators
 
     template<typename T>
@@ -832,7 +834,7 @@ template<typename T>
         return w;
     }
    
-
+#endif
 
 } // namespace fims
 
