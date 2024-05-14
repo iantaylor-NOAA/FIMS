@@ -3,6 +3,9 @@
 
 #include "../interface/interface.hpp"
 
+#define FIMS_VECTOR_IMLICIT_THROW
+
+
 namespace fims {
 
     /**
