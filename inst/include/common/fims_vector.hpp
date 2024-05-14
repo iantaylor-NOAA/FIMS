@@ -600,8 +600,8 @@ namespace fims {
             for (int i = v2.size(); i < v1.size(); i++) {
                 w.vec_m[i] = v1.vec_m[i];
             }
-            fims_vector_log << "vector add - vectors different lengths\n";
-            fims_vector_log << "extra entries of shorter vector assumed to be 0.0\n";
+            FIMS_LOG << "vector add - vectors different lengths\n";
+            FIMS_LOG << "extra entries of shorter vector assumed to be 0.0\n";
         } else {
             for (int i = 0; i < v1.size(); i++) {
                 w.vec_m[i] = v1.vec_m[i] + v2.vec_m[i];
@@ -609,8 +609,8 @@ namespace fims {
             for (int i = v1.size(); i < v2.size(); i++) {
                 w.vec_m[i] = v2.vec_m[i];
             }
-            fims_vector_log << "vector add - vectors different lengths\n";
-            fims_vector_log << "extra entries of shorter vector assumed to be 0.0\n";
+            FIMS_LOG << "vector add - vectors different lengths\n";
+            FIMS_LOG << "extra entries of shorter vector assumed to be 0.0\n";
         }
         return w;
 
@@ -670,8 +670,8 @@ namespace fims {
             for (int i = v2.size(); i < v1.size(); i++) {
                 w.vec_m[i] = -1.0 * v1.vec_m[i];
             }
-            fims_vector_log << "vector add - vectors different lengths\n";
-            fims_vector_log << "extra entries of shorter vector assumed to be 0.0\n";
+            FIMS_LOG << "vector subtract - vectors different lengths\n";
+            FIMS_LOG << "extra entries of shorter vector assumed to be 0.0\n";
         } else {
             for (int i = 0; i < v1.size(); i++) {
                 w.vec_m[i] = v1.vec_m[i] - v2.vec_m[i];
@@ -679,8 +679,8 @@ namespace fims {
             for (int i = v1.size(); i < v2.size(); i++) {
                 w.vec_m[i] = -1.0 * v2.vec_m[i];
             }
-            fims_vector_log << "vector add - vectors different lengths\n";
-            fims_vector_log << "extra entries of shorter vector assumed to be 0.0\n";
+            FIMS_LOG << "vector subtract - vectors different lengths\n";
+            FIMS_LOG << "extra entries of shorter vector assumed to be 0.0\n";
         }
         return w;
 
@@ -731,11 +731,14 @@ namespace fims {
             for (int i = 0; i < v2.size(); i++) {
                 w.vec_m[i] = v1.vec_m[i] * v2.vec_m[i];
             }
-
+            FIMS_LOG << "vector multiply - vectors different lengths\n";
+            FIMS_LOG << "extra entries of shorter vector assumed to be 0.0\n";
         } else {
             for (int i = 0; i < v1.size(); i++) {
                 w.vec_m[i] = v1.vec_m[i] * v2.vec_m[i];
             }
+            FIMS_LOG << "vector multiply - vectors different lengths\n";
+            FIMS_LOG << "extra entries of shorter vector assumed to be 0.0\n";
         }
 
         return w;
@@ -764,12 +767,63 @@ namespace fims {
         return w;
     }
 
+
+template<typename T>
+    fims::Vector<T> operator/(const fims::Vector<T>& v1, const fims::Vector<T>& v2) {
+        size_t n;
+
+        //  set n to be the length of the longest vector and create a vector
+        //  of that length to be returned
+        if (v1.size() > v2.size()) {
+            n = v1.size();
+        } else {
+            n = v2.size();
+        }
+
+        fims::Vector<T> w(n, T());
+
+        if (v1.size() == v2.size()) {
+            for (int i = 0; i < v1.size(); i++) {
+                w.vec_m[i] = v1.vec_m[i] / v2.vec_m[i];
+            }
+        } else if (v1.size() > v2.size()) {
+            for (int i = 0; i < v2.size(); i++) {
+                w.vec_m[i] = v1.vec_m[i] / v2.vec_m[i];
+            }
+
+            FIMS_LOG << "vector divide - vectors different lengths\n";
+            FIMS_LOG << "extra entries of shorter vector assumed to be 0.0\n";
+
+        } else {
+            for (int i = 0; i < v1.size(); i++) {
+                w.vec_m[i] = v1.vec_m[i] / v2.vec_m[i];
+            }
+
+            FIMS_LOG << "vector divide - vectors different lengths\n";
+            FIMS_LOG << "extra entries of shorter vector assumed to be 0.0\n";
+        }
+
+        return w;
+
+    }
+
     template<typename T >
     fims::Vector<T> operator/(const fims::Vector<T>& v, const T & a) {
         fims::Vector<T> w(v.size());
 
         for (int i = 0; i < v.size(); i++) {
             w.vec_m[i] = v.vec_m[i] / a;
+        }
+
+        return w;
+    }
+
+    template<typename T>
+    fims::Vector<T> operator/(const T& a, const fims::Vector<T>& v) {
+        fims::Vector<T> w(v.size());
+
+        for (int i = 0; i < v.size(); i++) {
+            w.vec_m[i] = a / v.vec_m[i];
         }
 
         return w;
