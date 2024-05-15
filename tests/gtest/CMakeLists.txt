@@ -99,6 +99,18 @@ target_link_libraries(fims_math_fabs_min_max
 
 gtest_discover_tests(fims_math_fabs_min_max)
 
+
+add_executable(fims_vector_operators
+  test_fims_vector_operators.cpp
+)
+
+target_link_libraries(fims_vector_operators
+  gtest_main
+  fims_test
+)
+
+gtest_discover_tests(fims_vector_operators)
+
 # test_growth.cpp
 add_executable(growth_evaluate
   test_growth.cpp

@@ -72,6 +72,8 @@ namespace fims {
         template<typename T>
         friend Vector<T> operator*(const T& a, const Vector<T>& v);
         template<typename T>
+        friend Vector<T> operator/(const Vector<T>& v1, const Vector<T>& v2);
+        template<typename T>
         friend Vector<T> operator/(const Vector<T>& v, const T& a); 
 #endif
         // Constructors
@@ -428,6 +430,17 @@ namespace fims {
             return this->vec_m[0];
         }
 
+        
+        Vector<Type>& operator = (const Type& v){
+#ifdef FIMS_VECTOR_IMLICIT_THROW
+            if (this->vec_m.size()  == 0 || this->vec_m.size() > 1) {
+                throw std::range_error("Treating fims::Vector<Type> as a scalar, has size not equal to 1.");
+            }
+#endif
+            this->vec_m[0] = v;
+            return *this;
+        }
+        
 #ifdef TMB_MODEL
 
         /**
@@ -775,7 +788,7 @@ namespace fims {
     }
 
 
-template<typename T>
+     template<typename T>
     fims::Vector<T> operator/(const fims::Vector<T>& v1, const fims::Vector<T>& v2) {
         size_t n;
 
