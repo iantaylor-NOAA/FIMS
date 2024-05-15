@@ -45,6 +45,9 @@ namespace
         fims::Vector<double> pi;
         pi = 3.14159265359;
         EXPECT_NEAR(pi, 3.14159265359, 0.000001);
+        
+        double pi_scalar = pi;
+        EXPECT_EQ(pi_scalar, pi[0]);
        
     }
 
