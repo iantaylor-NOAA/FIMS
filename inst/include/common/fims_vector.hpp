@@ -416,7 +416,9 @@ namespace fims {
             return this->vec_m;
         }
 
-
+        /**
+         * @brief Converts fims::Vector<Type> to a scalar of Type.
+         */
         operator Type() {
 #ifdef FIMS_VECTOR_IMLICIT_THROW
             if (this->vec_m.size()  == 0 || this->vec_m.size() > 1) {
