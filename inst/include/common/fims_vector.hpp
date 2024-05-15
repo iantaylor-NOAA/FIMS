@@ -420,7 +420,7 @@ namespace fims {
         operator Type() {
 #ifdef FIMS_VECTOR_IMLICIT_THROW
             if (this->vec_m.size()  == 0 || this->vec_m.size() > 1) {
-                throw std::range_error("Implicit conversion from fims::Vector to type \"Type\", fims::Vector has size not equal to 1. No scalar representation available");
+                throw std::range_error("Implicit conversion from fims::Vector<Type> to type \"Type\", fims::Vector<Type> has size not equal to 1.");
             }
 #endif
             return this->vec_m[0];
