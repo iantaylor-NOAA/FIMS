@@ -12,8 +12,8 @@ namespace fims {
      * Wrapper class for std::vector types. If this file is compiled with
      * -DTMB_MODEL, conversion operators are defined for TMB vector types.
      *
-     * All std::vector functions are copied over from the std library. While some of
-     * these may not be called explicitly in FIMS, they may be required to run other
+     * All std::vector methods are wraped. While some ofthese may not be 
+     * called explicitly in FIMS, they may be required to run other
      * std library functions.
      *
      */
