@@ -42,10 +42,12 @@ namespace
         EXPECT_NEAR(f[2], 0.4285714, 0.0001);
         EXPECT_NEAR(f[3], 0.5, 0.0001);
         
+        //Test operator "=" a scalar
         fims::Vector<double> pi;
         pi = 3.14159265359;
         EXPECT_NEAR(pi, 3.14159265359, 0.000001);
         
+        //Test implicit conversion to a scalar
         double pi_scalar = pi;
         EXPECT_EQ(pi_scalar, pi[0]);
        
