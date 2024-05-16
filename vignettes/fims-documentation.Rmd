@@ -78,7 +78,7 @@ design_documents <- list(
 ## C++ source code documentation
 c_code_documentation <- list(
   description = "**Description:** use comments in the code to document C++ files, namespaces, classes, structs, templates, variables, functions, and typedefs.\n",
-  audience = "**Audience**: project manager, developer, and user\n", 
+  audience = "**Audience**: developer and user\n", 
   link = "**Link**:\n
   \t\t - [C++ Doxygen website](https://noaa-fims.github.io/FIMS-docs/)\n",
   update = "**Update frequency**: always up to date.\n"
@@ -87,7 +87,7 @@ c_code_documentation <- list(
 ## R source code documentation
 r_code_documentation <- list(
   description = "**Description:** describe R functions in comments next to their definitions.\n",
-  audience = "**Audience**: developer\n", 
+  audience = "**Audience**: developer and user\n", 
   link = "**Link**:\n
   \t\t - [Function reference](https://noaa-fims.github.io/FIMS/reference/index.html)\n",
   update = "**Update frequency**: always up to date.\n"
