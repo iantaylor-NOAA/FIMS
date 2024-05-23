@@ -42,8 +42,14 @@ setClass(
 #' on the child class. Use [showClass()] to see all available slots.
 create_fims_output <- function(tmb,sdreport,call) {
   # will pull the information from tmb and/or sdreport for estimates, par is a placeholder
-  estimates = tmb$par
-  estimates = sdreport$par
+  #The following only applies to SSB and Biomass and need to modify to include other parameters and quantities 
+  estimate_tibble <- function(derivedquanname, obj=obj$report(), sdr=sdr){
+    tibble(label=derivedquanname, time=0:nyears, initial=NA, estimates=sdr$value[names(sdr$value)==derivedquanname], 
+    uncertainty=sdr$sd[names(sdr$value)==derivedquanname], likelihood=NA, gradient=NA, estimated=NA) 
+}
+
+estimates <- do.call("rbind", lapply(c("SSB","Biomass"), estimate_tibble, obj = obj$report(), sdr = sdr))
+
   # will pull the information from tmb and/or sdreport for fits, par is a placeholder
   fits = tmb$par
   fits = sdreport$par
