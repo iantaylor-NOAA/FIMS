@@ -22,6 +22,8 @@ v2 <- new(ParameterVector, rep(v2_value, v_size), v_size)
 for(i in 1:v_size){
    expect_equal(v2$at(i)$value, v2_value)
 }
+
+
 #Test plus operator works.
 v_plus_test <- v1 + v2
 for(i in 1:v_size){
