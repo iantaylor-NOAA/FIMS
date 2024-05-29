@@ -6,4 +6,4 @@ on:
   push:
 jobs:
   call-workflow:
-    uses: nmfs-fish-tools/ghactions4r/.github/workflows/build-pkgdown.yml@check-pkgdown
+    uses: nmfs-fish-tools/ghactions4r/.github/workflows/build-pkgdown.yml@main
